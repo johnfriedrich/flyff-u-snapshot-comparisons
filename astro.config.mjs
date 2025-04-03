@@ -6,6 +6,6 @@ import sitemap from '@astrojs/sitemap';
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://johnfriedrich.github.io',
-    base: 'flyff-u-snapshot-comparisons',
+    base: '/flyff-u-snapshot-comparisons',
 	integrations: [mdx(), sitemap()],
 });
