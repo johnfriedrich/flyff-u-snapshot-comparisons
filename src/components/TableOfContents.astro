@@ -1,0 +1,23 @@
+---
+interface Props {
+  chapters: {
+    depth: number;
+    title: string;
+    href: string;
+  }[];
+}
+
+const { chapters } = Astro.props;
+---
+<aside style="flex: 1; position: sticky; top: 2rem; align-self: start;">
+  <h2>Table of Contents</h2>
+  <ul>
+    {
+      chapters.map((chapter) => (
+        <li style={{ marginLeft: `${(chapter.depth - 2) * 1}em` }}>
+          <a href={chapter.href} style="text-decoration: none;">{chapter.title}</a>
+        </li>
+      ))
+    }
+  </ul>
+</aside>
