@@ -11,7 +11,7 @@ export default function remarkTableOfContents() {
     const toc = [];
 
     visit(tree, "heading", (node, index, parent) => {
-      // Only consider top level headings
+      // Only consider top level headings.
       if (parent.type !== "root") return;
 
       const depth = node.depth;
