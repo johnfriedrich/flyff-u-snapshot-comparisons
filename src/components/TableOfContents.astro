@@ -9,7 +9,7 @@ interface Props {
 
 const { chapters } = Astro.props;
 ---
-<aside style="flex: 1; position: sticky; top: 2rem; align-self: start;">
+<aside style="flex: 1; position: sticky; overflow-y: auto;  max-height: calc(100vh - 4rem); top: 2rem; align-self: start;">
   <h2>Table of Contents</h2>
   <ul>
     {
