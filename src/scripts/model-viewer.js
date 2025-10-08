@@ -1,52 +1,165 @@
+// src/scripts/model-viewer-runner.js
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-window.addEventListener("DOMContentLoaded", async () => {
-  console.log("✅ model-viewer script loaded");
+export function initModelViewer(container, { width = 400, height = 200 } = {}) {
 
-  const container = document.getElementById("model-viewer");
-  if (!container) {
-    console.error("❌ model-viewer container not found!");
+    if (!container || !(container instanceof HTMLElement)) {
+    console.error("initModelViewer: Invalid container element");
     return;
   }
 
-  // basic setup
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(container.clientWidth, container.clientHeight);
-  container.appendChild(renderer.domElement);
-
-  const light = new THREE.DirectionalLight(0xffffff, 1);
-  light.position.set(3, 3, 3);
-  scene.add(light);
-
-  const ambient = new THREE.AmbientLight(0x404040);
-  scene.add(ambient);
-
-  // load JSON model
-  try {
-   // const response = await fetch("/media/mesh.json");
-    //const data = await response.json();
-    //console.log("✅ Model data loaded:", data);
-
-    const loader = new THREE.BufferGeometryLoader();
-    loader.load('/media/mesh.json', geometry => {
-    const material = new THREE.MeshStandardMaterial({ color: 0xcccccc });
-    const mesh = new THREE.Mesh(geometry, material);
-    scene.add(mesh);
-});
-    const controls = new OrbitControls(camera, renderer.domElement);
-    camera.position.z = 5;
-
-    function animate() {
-      requestAnimationFrame(animate);
-      mesh.rotation.y += 0.01;
-      controls.update();
-      renderer.render(scene, camera);
-    }
-    animate();
-  } catch (err) {
-    console.error("❌ Failed to load model:", err);
+  if (container.__hasViewer) {
+    console.warn("Model viewer already initialized for this container");
+    return;
   }
-});
+  container.__hasViewer = true;
+
+  const src = container.dataset.modelSrc;
+  if (!src) {
+    console.error("initModelViewer: Missing data-model-src attribute");
+    return;
+  }
+
+  // 🟦 Assign default size and style dynamically
+  container.style.width = width + "px";
+  container.style.height = height + "px";
+  container.style.position = "relative";
+  container.style.background = "#ffffffff";
+  container.style.overflow = "hidden";
+
+  console.log("[debug] Initializing model viewer:", src);
+    
+      // Ensure container has sensible size
+      if (!container.style.height) container.style.height = container.clientHeight ? `${container.clientHeight}px` : "500px";
+    
+            // Scene setup
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xe8f4f8);
+            scene.fog = new THREE.Fog(0x1a1a2e, 10, 50);
+            const { clientWidth, clientHeight } = container;
+    
+            // Camera
+            const camera = new THREE.PerspectiveCamera(
+                50,
+                width / height,
+                0.1,
+                1000
+            );
+            camera.position.set(2, 1, 2);
+    
+            // Renderer
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+
+            // Apply to renderer + camera
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+    
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+            scene.add(ambientLight);
+    
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(5, 10, 7.5);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.camera.near = 0.1;
+            directionalLight.shadow.camera.far = 50;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            scene.add(directionalLight);
+    
+            const fillLight = new THREE.DirectionalLight(0x4488ff, 0.3);
+            fillLight.position.set(-5, 5, -5);
+            scene.add(fillLight);
+    
+            // Controls
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.minDistance = 0.5;
+            controls.maxDistance = 10;
+    
+            // Load GLB model
+            const loader = new GLTFLoader();
+            let model;
+    
+            loader.load(src, // Change this to your GLB file path
+                function (gltf) {
+                    model = gltf.scene;
+                    
+                    // Enable shadows
+                    model.traverse((child) => {
+                        if (child.isMesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                        }
+                    });
+    
+                    // Center and scale the model
+                    const box = new THREE.Box3().setFromObject(model);
+                    const center = box.getCenter(new THREE.Vector3());
+                    const size = box.getSize(new THREE.Vector3());
+                    
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    const scale = 3 / maxDim; // Scale to fit in 2 units
+                    model.scale.multiplyScalar(scale);
+                    
+                    // Recalculate after scaling
+                    box.setFromObject(model);
+                    box.getCenter(center);
+                    model.position.sub(center);
+                    model.position.y += size.y * scale / 2; // Place on ground
+    
+                    scene.add(model);
+    
+                    // Update camera to look at model
+                    controls.target.copy(model.position);
+                    controls.update();
+    
+                    // Hide loading, show info
+                    
+                    console.log(
+                        `Model loaded!<br>
+                        Triangles: ${gltf.scene.children.length > 0 ? 
+                            (gltf.scene.children[0].geometry?.index?.count / 3 || 'N/A') : 'N/A'}<br>
+                        Size: ${size.x.toFixed(2)} × ${size.y.toFixed(2)} × ${size.z.toFixed(2)}`);
+                },
+                function (xhr) {
+                    const percent = (xhr.loaded / xhr.total * 100).toFixed(0);
+                    
+                },
+                function (error) {
+                    console.error('Error loading model:', error);
+                   
+                }
+            );
+    
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+                
+                // Rotate model slowly
+                if (model) {
+                    model.rotation.y += 0.001;
+                }
+                
+                controls.update();
+                renderer.render(scene, camera);
+            }
+    
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                const { clientWidth, clientHeight } = container;
+                camera.aspect = clientWidth / clientHeight;
+                renderer.setSize(clientWidth, clientHeight);
+                camera.updateProjectionMatrix();
+            });
+    
+            // Start animation
+            animate();
+  
+}
