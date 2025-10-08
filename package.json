@@ -10,10 +10,12 @@
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.6",
+    "@astrojs/preact": "^4.1.1",
     "@astrojs/rss": "^4.0.12",
     "@astrojs/sitemap": "^3.6.0",
     "astro": "^5.13.11",
     "flyff-u-snapshot-comparisons": "file:",
+    "preact": "^10.27.2",
     "three": "^0.180.0",
     "three-stdlib": "^2.36.0",
     "unist-util-visit": "^5.0.0"

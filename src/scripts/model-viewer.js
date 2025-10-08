@@ -1,7 +1,6 @@
-// src/scripts/model-viewer-runner.js
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 export function initModelViewer(container, { width = 400, height = 200 } = {}) {
 
