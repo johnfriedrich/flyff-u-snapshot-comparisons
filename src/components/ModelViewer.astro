@@ -1,0 +1,9 @@
+---
+// src/components/ModelViewer.astro
+const { id = `mv-${Math.random().toString(36).slice(2)}`, src = '/media/mesh.json', height = '520px' } = Astro.props;
+---
+
+<div id={id} data-model-src={src} style={`width:100%; height:${height}; position:relative; background:#111;`}></div>
+
+<!-- load the runner which will import the debug loader and initialize the viewer -->
+<script type="module" src="/src/scripts/model-viewer-runner.js" defer></script>

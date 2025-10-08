@@ -4,6 +4,7 @@ import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import TableOfContents from "../components/TableOfContents.astro";
+import ModelViewer from '../components/ModelViewer.astro';
 
 type Props = CollectionEntry<'blog'>['data'];
 
@@ -51,6 +52,7 @@ const { title, description, pubDate, updatedDate, heroImage, remarkPluginFrontma
 			<article style="flex: 3;">
 				<div class="prose">
 					<div class="title">
+						<ModelViewer src="/media/mesh.json" />
 						<div class="date">
 							<FormattedDate date={pubDate} />
 							{
