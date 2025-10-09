@@ -46,7 +46,7 @@ export function initModelViewer(container, { width = 400, height = 200 } = {}) {
                 0.1,
                 1000
             );
-            camera.position.set(2, 2, 2);
+            camera.position.set(0, 2, -4);
     
             // Renderer
             const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -149,9 +149,9 @@ export function initModelViewer(container, { width = 400, height = 200 } = {}) {
                 requestAnimationFrame(animate);
                 
                 // Rotate model slowly
-                if (model) {
-                    model.rotation.y += 0.001;
-                }
+                //if (model) {
+                //    model.rotation.y += 0.001;
+                //}
                 
                 controls.update();
                 renderer.render(scene, camera);
