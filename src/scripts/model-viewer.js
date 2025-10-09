@@ -46,7 +46,7 @@ export function initModelViewer(container, { width = 400, height = 200 } = {}) {
                 0.1,
                 1000
             );
-            camera.position.set(2, 1, 2);
+            camera.position.set(2, 2, 2);
     
             // Renderer
             const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -86,7 +86,7 @@ export function initModelViewer(container, { width = 400, height = 200 } = {}) {
             const loader = new GLTFLoader();
             let model;
     
-            loader.load(src, // Change this to your GLB file path
+            loader.load(src,
                 function (gltf) {
                     model = gltf.scene;
                     
@@ -104,19 +104,26 @@ export function initModelViewer(container, { width = 400, height = 200 } = {}) {
                     const size = box.getSize(new THREE.Vector3());
                     
                     const maxDim = Math.max(size.x, size.y, size.z);
-                    const scale = 3 / maxDim; // Scale to fit in 2 units
+                    const scale = 3 / maxDim;
                     model.scale.multiplyScalar(scale);
                     
-                    // Recalculate after scaling
+                    // Recalculate bounding box after scaling
                     box.setFromObject(model);
                     box.getCenter(center);
-                    model.position.sub(center);
-                    model.position.y += size.y * scale / 2; // Place on ground
+                    
+                    // Position model: center X/Z, bottom at Y=0
+                    model.position.x = -center.x;
+                    model.position.z = -center.z;
+                    model.position.y = -box.min.y; // This puts the bottom of the model at y=0
     
                     scene.add(model);
     
-                    // Update camera to look at model
-                    controls.target.copy(model.position);
+                    // Update camera to look at model center
+                    const modelCenter = new THREE.Vector3();
+                    box.setFromObject(model); // Recalculate after positioning
+                    box.getCenter(modelCenter);
+                    
+                    controls.target.copy(modelCenter);
                     controls.update();
     
                     // Hide loading, show info
